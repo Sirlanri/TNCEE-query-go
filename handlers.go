@@ -9,14 +9,14 @@ import (
 )
 
 type sqlobj struct {
-	code        string `json:"code"`
-	collegename string `json:"collegename"`
-	majorcode   string `json:"majorcode"`
-	majorname   string `json:"majorname"`
-	minscore    int    `json:"minscore"`
-	minrank     int    `json:"minrank"`
-	avescore    int    `json:"avescore"`
-	year        int    `json:"year"`
+	Code        string `json:"院校代号"`
+	Collegename string `json:"院校名称"`
+	Majorcode   string `json:"专业代号"`
+	Majorname   string `json:"专业名称"`
+	Minscore    int    `json:"录取最低分"`
+	Minrank     int    `json:"最低位次"`
+	Avescore    int    `json:"平均分"`
+	Year        int    `json:"年份"`
 }
 
 //查询3届数据
