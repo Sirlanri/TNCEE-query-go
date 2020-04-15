@@ -17,9 +17,8 @@ func main() {
 	//初始化iris框架
 	app := iris.New()
 	app.Get("/rankQuery", func(ctx iris.Context) {
-		ctx.Text("连接成功")
-		rankQuery(&ctx, db)
+		rankQuery(ctx, db)
 	})
 
-	app.Listen(":8080")
+	app.Listen(":8090")
 }
