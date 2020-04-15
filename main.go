@@ -8,6 +8,10 @@ import (
 )
 
 func main() {
+	getscores()
+}
+
+func main2() {
 	//初始化数据库连接
 	db, err := sql.Open("mysql", "root:123456@/gaokao")
 	if db.Ping() != nil {
@@ -16,6 +20,8 @@ func main() {
 
 	//初始化iris框架
 	app := iris.New()
+
+	//后端api接口
 	app.Get("/rankQuery", func(ctx iris.Context) {
 		rankQuery(ctx, db)
 	})
