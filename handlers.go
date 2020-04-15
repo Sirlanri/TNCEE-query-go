@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -10,20 +9,19 @@ import (
 )
 
 type sqlobj struct {
-	code        string
-	collegename string
-	majorcode   string
-	majorname   string
-	minscore    int
-	minrank     int
-	avescore    int
-	year        int
+	code        string `json:"code"`
+	collegename string `json:"collegename"`
+	majorcode   string `json:"majorcode"`
+	majorname   string `json:"majorname"`
+	minscore    int    `json:"minscore"`
+	minrank     int    `json:"minrank"`
+	avescore    int    `json:"avescore"`
+	year        int    `json:"year"`
 }
 
 //查询3届数据
 func rankQuery(ctx iris.Context, db *sql.DB) {
-	ctx.Text("链接数据库成功~")
-
+	ctx.ContentType("application/javascript")
 	if db.Ping() != nil {
 		println("handler-数据库连接出错")
 	} else {
@@ -37,14 +35,12 @@ func rankQuery(ctx iris.Context, db *sql.DB) {
 	sqls := make([]sqlobj, 0, 1000)
 
 	for rows.Next() {
-		sqlnow := sqlobj{}
-		err := rows.Scan(&sqlnow.code, &sqlnow.collegename, &sqlnow.majorcode, &sqlnow.majorname, &sqlnow.minscore,
-			&sqlnow.minrank, &sqlnow.avescore, &sqlnow.year)
+		var sqlnow sqlobj
+		err := rows.Scan(&sqlnow)
 		if err != nil {
 			println("遍历出错", err.Error())
 		}
-		js, _ := json.Marshal(sqlnow)
-		_, err = ctx.JSON(js)
+		_, err = ctx.JSON(sqlnow)
 		if err != nil {
 			println("json出错", err.Error())
 		}
