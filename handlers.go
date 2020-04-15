@@ -9,19 +9,18 @@ import (
 )
 
 type sqlobj struct {
-	Code        string `json:"院校代号"`
-	Collegename string `json:"院校名称"`
-	Majorcode   string `json:"专业代号"`
-	Majorname   string `json:"专业名称"`
-	Minscore    int    `json:"录取最低分"`
-	Minrank     int    `json:"最低位次"`
-	Avescore    int    `json:"平均分"`
-	Year        int    `json:"年份"`
+	Code        string
+	Collegename string
+	Majorcode   string
+	Majorname   string
+	Minscore    int
+	Minrank     int
+	Avescore    int
+	Year        int
 }
 
 //查询3届数据
 func rankQuery(ctx iris.Context, db *sql.DB) {
-	ctx.ContentType("application/javascript")
 	if db.Ping() != nil {
 		println("handler-数据库连接出错")
 	} else {
@@ -36,7 +35,8 @@ func rankQuery(ctx iris.Context, db *sql.DB) {
 
 	for rows.Next() {
 		var sqlnow sqlobj
-		err := rows.Scan(&sqlnow)
+		err := rows.Scan(&sqlnow.Code, &sqlnow.Collegename, &sqlnow.Majorcode, &sqlnow.Majorname, &sqlnow.Minscore,
+			&sqlnow.Minrank, &sqlnow.Avescore, &sqlnow.Year)
 		if err != nil {
 			println("遍历出错", err.Error())
 		}
