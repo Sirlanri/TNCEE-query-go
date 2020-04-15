@@ -8,7 +8,8 @@ import (
 )
 
 func main() {
-	getscores()
+	sex()
+
 }
 
 func main2() {

@@ -30,22 +30,20 @@ func rankQuery(ctx iris.Context, db *sql.DB) {
 	}
 
 	//从数据库获取数据，计划采用和spring一样的数据结构
-	responseData := make(map[string]interface{})
+	/*responseData := make(map[string]interface{})
 	scoreData := make(map[string]interface{})
 	singleScore := make(map[string]interface{})
-	
-	//预编译sql
-	//传入专业名称和年份(2017)
-	getMinGrade,err := db.Prepare("select 录取最低分 from lg where 专业名称=? and 年份=?")
-	getMinRank,err := db.Prepare("select 最低位次 from lg where 专业名称=? and 年份=?")
-	
+
+	//预编译sql: 传入lg/ws 专业名称 年份(2017)
+	getMinGrade,err := db.Prepare("select 录取最低分 from ? where 专业名称=? and 年份=?")
+	getMinRank,err := db.Prepare("select 最低位次 from ? where 专业名称=? and 年份=?")
+	getAverage,err := db.Prepare("select 平均分 from ? where 专业名称=? and 年份=?")
+	*/
 
 	rows, err := db.Query("SELECT * FROM `gaokao`.`lg` LIMIT 1")
 	if err != nil {
 		println("handler-数据库测试出错", err)
 	}
-
-
 
 	sqls := make([]sqlobj, 0, 1000)
 
