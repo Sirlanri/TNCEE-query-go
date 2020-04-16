@@ -7,12 +7,11 @@ import (
 	"github.com/kataras/iris/v12"
 )
 
-func main() {
-	sex()
+func main3() {
 
 }
 
-func main2() {
+func main() {
 	//初始化数据库连接
 	db, err := sql.Open("mysql", "root:123456@/gaokao")
 	if db.Ping() != nil {
@@ -23,8 +22,11 @@ func main2() {
 	app := iris.New()
 
 	//后端api接口
-	app.Get("/rankQuery", func(ctx iris.Context) {
-		rankQuery(ctx, db)
+	app.Post("numschange", func(ctx iris.Context) {
+		numsChange(ctx, db)
+	})
+	app.Post("sexpro", func(ctx iris.Context) {
+		sexPro(ctx, db)
 	})
 
 	app.Listen(":8090")
