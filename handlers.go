@@ -36,20 +36,22 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 	minRank := make([]int, 0, 3)
 	var minscore, minrank, avescore int
 
-	getExplg, err := db.Prepare(`
-		select minscore,minrank,avescore from gaokao.lg17 where name=?
-		union
-		select minscore,minrank,avescore from gaokao.lg18 where name=?
-		union
-		select minscore,minrank,avescore from gaokao.lg19 where name=?
-	`)
-	if err != nil {
-		println("预编译表达式出错", err.Error())
-	}
-
 	//执行sql查询
 	switch postInfor.Type {
 	case "理工":
+		//预编译表达式，但是不够完美，写预编译纯属为了好看
+
+		//获取三年数据
+		getExplg, err := db.Prepare(`
+			select minscore,minrank,avescore from gaokao.lg17 where name=?
+			union
+			select minscore,minrank,avescore from gaokao.lg18 where name=?
+			union
+			select minscore,minrank,avescore from gaokao.lg19 where name=?
+		`)
+		if err != nil {
+			println("预编译表达式出错", err.Error())
+		}
 		rows, err := getExplg.Query(postInfor.Profession, postInfor.Profession, postInfor.Profession)
 		if err != nil {
 			println("执行sql出错", err.Error())
@@ -64,22 +66,89 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 			minScore = append(minScore, minscore)
 			minRank = append(minRank, minrank)
 		}
-
+		//没有这个专业数据 返回 404
+		if len(aveScore) == 0 {
+			ctx.StatusCode(404)
+			println("404-找不到专业数据")
+			return
+		}
+		//获取性别比例
+		getSex, err := db.Prepare("select sex from gaokao.lg18 where name=?")
+		var sexnum float32
+		err = getSex.QueryRow(postInfor.Profession).Scan(&sexnum)
+		if err != nil {
+			println("执行获取性别sql出错", err.Error())
+		}
 		resMap := make(map[string]interface{})
 		resMap["avescore"] = aveScore
 		resMap["minscore"] = minScore
 		resMap["minrank"] = minRank
+		resMap["sex"] = sexnum
 
 		_, err = ctx.JSON(resMap)
 		if err != nil {
 			println("打包返回json失败", err.Error())
 		} else {
-			fmt.Println("成功返回三年数据", aveScore, minScore, minRank)
+			fmt.Println("成功返回三年数据", aveScore, minScore, minRank, sexnum)
 		}
+		getExplg.Close()
+
+	case "文史":
+
+		//获取三年数据
+		getExplg, err := db.Prepare(`
+			select minscore,minrank,avescore from gaokao.ws17 where name=?
+			union
+			select minscore,minrank,avescore from gaokao.ws18 where name=?
+			union
+			select minscore,minrank,avescore from gaokao.ws19 where name=?
+		`)
+		if err != nil {
+			println("预编译表达式出错", err.Error())
+		}
+		rows, err := getExplg.Query(postInfor.Profession, postInfor.Profession, postInfor.Profession)
+		if err != nil {
+			println("执行sql出错", err.Error())
+		}
+		//rows结果，分别是17 18 19
+		for rows.Next() {
+			err := rows.Scan(&minscore, &minrank, &avescore)
+			if err != nil {
+				println("执行sql后写入数据出错", err.Error())
+			}
+			aveScore = append(aveScore, avescore)
+			minScore = append(minScore, minscore)
+			minRank = append(minRank, minrank)
+		}
+		//没有这个专业数据 返回 404
+		if len(aveScore) == 0 {
+			ctx.StatusCode(404)
+			println("404-找不到专业数据")
+			return
+		}
+		//获取性别比例
+		getSex, err := db.Prepare("select sex from gaokao.ws18 where name=?")
+		var sexnum float32
+		err = getSex.QueryRow(postInfor.Profession).Scan(&sexnum)
+		if err != nil {
+			println("执行获取性别sql出错", err.Error())
+		}
+
+		resMap := make(map[string]interface{})
+		resMap["avescore"] = aveScore
+		resMap["minscore"] = minScore
+		resMap["minrank"] = minRank
+		resMap["sex"] = sexnum
+
+		_, err = ctx.JSON(resMap)
+		if err != nil {
+			println("打包返回json失败", err.Error())
+		} else {
+			fmt.Println("成功返回三年数据", aveScore, minScore, minRank, sexnum)
+		}
+		getExplg.Close()
 	}
-	getExplg.Close()
-}
-func sexPro(ctx iris.Context, db *sql.DB) {
+
 }
 
 //查询3届数据

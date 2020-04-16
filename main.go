@@ -25,9 +25,6 @@ func main() {
 	app.Post("numschange", func(ctx iris.Context) {
 		numsChange(ctx, db)
 	})
-	app.Post("sexpro", func(ctx iris.Context) {
-		sexPro(ctx, db)
-	})
 
 	app.Listen(":8090")
 }
