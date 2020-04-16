@@ -79,6 +79,58 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 		if err != nil {
 			println("执行获取性别sql出错", err.Error())
 		}
+
+		//获取分数密度
+		getThisScore17, err := db.Prepare("select count(*) from gaokao.17totaldata where 专业=? and 成绩=? ")
+		getAllScore17, err := db.Prepare("select count(*) from gaokao.17totaldata where 专业=?")
+		getThisScore18, err := db.Prepare("select count(*) from gaokao.18totaldata where 专业=? and 成绩=? ")
+		getAllScore18, err := db.Prepare("select count(*) from gaokao.18totaldata where 专业=?")
+		getThisScore19, err := db.Prepare("select count(*) from gaokao.19totaldata where 专业=? and 成绩=? ")
+		getAllScore19, err := db.Prepare("select count(*) from gaokao.19totaldata where 专业=?")
+		if err != nil {
+			println("分数密度预编译表达式出错", err.Error())
+		}
+		//获取X轴数据，[三年最低分，三年最高]
+		maxdata := getMax(aveScore)
+		mindata := getMin(minScore)
+		//循环三次，三年
+		for i := mindata; i < maxdata; i++ {
+			var bizhi, thisScore, allScore float32
+			err := getAllScore17.QueryRow(postInfor.Profession).Scan(&allScore)
+			if err != nil {
+				println("读取所有分数出错", err.Error())
+			}
+			err = getThisScore17.QueryRow(postInfor.Profession, i).Scan(&thisScore)
+			bizhi = thisScore / allScore
+			if err != nil {
+				println("读取分数百分比出错", err.Error())
+			} else {
+				fmt.Println("17届比值", i, bizhi)
+			}
+		}
+		for i := mindata; i < maxdata; i++ {
+			var bizhi, thisScore, allScore float32
+			err := getAllScore18.QueryRow(postInfor.Profession).Scan(&allScore)
+			err = getThisScore18.QueryRow(postInfor.Profession, i).Scan(&thisScore)
+			bizhi = thisScore / allScore
+			if err != nil {
+				println("读取分数百分比出错")
+			} else {
+				fmt.Println("18届", i, bizhi)
+			}
+		}
+		for i := mindata; i < maxdata; i++ {
+			var bizhi, thisScore, allScore float32
+			err := getAllScore19.QueryRow(postInfor.Profession).Scan(&allScore)
+			err = getThisScore19.QueryRow(postInfor.Profession, i).Scan(&thisScore)
+			bizhi = thisScore / allScore
+			if err != nil {
+				println("读取分数百分比出错")
+			} else {
+				fmt.Println("19届", i, bizhi)
+			}
+		}
+
 		resMap := make(map[string]interface{})
 		resMap["avescore"] = aveScore
 		resMap["minscore"] = minScore
@@ -91,6 +143,7 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 		} else {
 			fmt.Println("成功返回三年数据", aveScore, minScore, minRank, sexnum)
 		}
+
 		getExplg.Close()
 
 	case "文史":

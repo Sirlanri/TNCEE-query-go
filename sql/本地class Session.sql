@@ -14,3 +14,6 @@ union
 select minscore,minrank,avescore,averank from gaokao.lg18 where name='工业设计'
 union
 select minscore,minrank,avescore,averank from gaokao.lg19 where name='工业设计'
+
+select count(*) from gaokao.18totaldata where 专业="机械设计制造及其自动化" and 成绩=520 
+select count(*) from gaokao.18totaldata where 专业="机械设计制造及其自动化"
