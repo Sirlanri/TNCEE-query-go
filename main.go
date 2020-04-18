@@ -2,19 +2,16 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/kataras/iris/v12"
 )
 
-func main3() {
-	slice1 := make([]int, 0, 3)
-	slice1 = append(slice1, 8, 5, 10)
-	fmt.Println(getMax(slice1))
+func main() {
+	majorMax()
 }
 
-func main() {
+func main1() {
 	//初始化数据库连接
 	db, err := sql.Open("mysql", "root:123456@/gaokao")
 	if db.Ping() != nil {

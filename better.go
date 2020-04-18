@@ -109,3 +109,70 @@ func sex() {
 	}
 
 }
+
+//获取专业最高分
+func majorMax() {
+	db, err := sql.Open("mysql", "root:123456@/gaokao")
+	if db.Ping() != nil {
+		println("初始化-数据库连接出错", err)
+	}
+	lg17rows, err := db.Query("select 专业, max(成绩) from gaokao.17totaldata where 科类代码='文史' group by 专业 ")
+	if err != nil {
+		println("sql执行出错", err.Error())
+	}
+	for lg17rows.Next() {
+		var majorName string
+		var maxScore int
+		lg17rows.Scan(&majorName, &maxScore)
+
+		//写入到表中
+		writein, err := db.Prepare("update gaokao.ws17 set maxscore =? where name=?")
+		if err != nil {
+			println("预编译表达式出错", err.Error())
+		}
+		_, err = writein.Exec(maxScore, majorName)
+		if err != nil {
+			println("执行表达式出错", err.Error())
+		}
+	}
+
+	lg18rows, err := db.Query("select 专业, max(成绩) from gaokao.18totaldata where 科类代码='文史' group by 专业 ")
+	if err != nil {
+		println("sql执行出错", err.Error())
+	}
+	for lg18rows.Next() {
+		var majorName string
+		var maxScore int
+		lg18rows.Scan(&majorName, &maxScore)
+
+		//写入到表中
+		writein, err := db.Prepare("update gaokao.ws18 set maxscore =? where name=?")
+		if err != nil {
+			println("预编译表达式出错", err.Error())
+		}
+		_, err = writein.Exec(maxScore, majorName)
+		if err != nil {
+			println("执行表达式出错", err.Error())
+		}
+	}
+
+	lg19rows, err := db.Query("select 专业, max(成绩) from gaokao.19totaldata where 科类代码='文史' group by 专业 ")
+	if err != nil {
+		println("sql执行出错", err.Error())
+	}
+	for lg19rows.Next() {
+		var majorName string
+		var maxScore int
+		lg19rows.Scan(&majorName, &maxScore)
+
+		//写入到表中
+		writein, err := db.Prepare("update gaokao.ws19 set maxscore =? where name=?")
+		if err != nil {
+			println("预编译表达式出错", err.Error())
+		}
+		_, err = writein.Exec(maxScore, majorName)
+		if err != nil {
+			println("执行表达式出错", err.Error())
+		}
+	}
+}

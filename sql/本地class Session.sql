@@ -17,3 +17,7 @@ select minscore,minrank,avescore,averank from gaokao.lg19 where name='工业设�
 
 select count(*) from gaokao.18totaldata where 专业="机械设计制造及其自动化" and 成绩=520 
 select count(*) from gaokao.18totaldata where 专业="机械设计制造及其自动化"
+
+select 专业, max(成绩) from gaokao.17totaldata where 科类代码='理工' group by 专业 
+
+update gaokao.17lg set maxscore =? where name=?
