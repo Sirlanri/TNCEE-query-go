@@ -176,3 +176,35 @@ func majorMax() {
 		}
 	}
 }
+
+//写入最高名次
+func toMaxRank() {
+	db, err := sql.Open("mysql", "root:123456@/gaokao")
+	if db.Ping() != nil {
+		println("初始化-数据库连接出错", err)
+	}
+	maxScores, err := db.Query("select maxscore from ws19")
+	if err != nil {
+		println("获取maxScore错误", err.Error())
+	}
+	getrank, err := db.Prepare("select 理工科类累计人数 from rank19 where 成绩分数段=?")
+	if err != nil {
+		println("获取预编译错误", err.Error())
+	}
+	for maxScores.Next() {
+		var score, rank int
+		maxScores.Scan(&score)
+		if score == 0 {
+			continue
+		}
+		err := getrank.QueryRow(score).Scan(&rank)
+		if err != nil {
+			println("查询出错", err.Error())
+		}
+		_, err = db.Exec("update ws19 set maxrank=? where maxscore=?", rank, score)
+		if err != nil {
+			println("写入出错", err.Error())
+		}
+
+	}
+}

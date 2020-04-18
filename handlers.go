@@ -292,5 +292,12 @@ func recommend(ctx iris.Context, db *sql.DB) {
 		println("非法请求格式", err.Error())
 		return
 	}
+	//以平均位次为查询方式
+	minRank := receive.Rank - 5000
+	maxRank := receive.Rank + 5000
+	getNames, err := db.Prepare("select name, averank, minrank from gaokao.lg19 where averank between ? and ?")
+	if err != nil {
+		println("预编译表达式出错", err.Error())
+	}
 
 }

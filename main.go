@@ -8,7 +8,7 @@ import (
 )
 
 func main2() {
-	majorMax()
+	toMaxRank()
 }
 
 func main() {
