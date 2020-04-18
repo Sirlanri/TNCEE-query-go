@@ -39,9 +39,6 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 
 	//返回的密度数据
 	axisX := make([]int, 0, 100)
-	axis17 := make([]float32, 0, 100)
-	axis18 := make([]float32, 0, 100)
-	axis19 := make([]float32, 0, 100)
 
 	//执行sql查询
 	switch postInfor.Type {
@@ -70,6 +67,7 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 			if err != nil {
 				println("执行sql后写入数据出错", err.Error())
 			}
+			defer rows.Close()
 			//此专业数据残缺（没有最高分），返回421
 			if maxscore == 0 {
 				ctx.StatusCode(421)
@@ -98,11 +96,11 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 		}
 
 		//获取分数密度
-		getThisScore17, err := db.Prepare("select count(*) from gaokao.17totaldata where 专业=? and 成绩=? ")
+		getThisScore17, err := db.Prepare("select 成绩,count(*) from gaokao.17totaldata where 专业=? and 成绩 between ? and ? group by 成绩 order by 成绩")
 		getAllScore17, err := db.Prepare("select count(*) from gaokao.17totaldata where 专业=?")
-		getThisScore18, err := db.Prepare("select count(*) from gaokao.18totaldata where 专业=? and 成绩=? ")
+		getThisScore18, err := db.Prepare("select 成绩,count(*) from gaokao.18totaldata where 专业=? and 成绩 between ? and ? group by 成绩 order by 成绩")
 		getAllScore18, err := db.Prepare("select count(*) from gaokao.18totaldata where 专业=?")
-		getThisScore19, err := db.Prepare("select count(*) from gaokao.19totaldata where 专业=? and 成绩=? ")
+		getThisScore19, err := db.Prepare("select 成绩,count(*) from gaokao.19totaldata where 专业=? and 成绩 between ? and ? group by 成绩 order by 成绩")
 		getAllScore19, err := db.Prepare("select count(*) from gaokao.19totaldata where 专业=?")
 		if err != nil {
 			println("分数密度预编译表达式出错", err.Error())
@@ -116,44 +114,88 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 			axisX = append(axisX, i)
 		}
 
-		//17级的分数密度
-		for i := mindata; i < maxdata; i++ {
-			var bizhi, thisScore, allScore float32
-			err := getAllScore17.QueryRow(postInfor.Profession).Scan(&allScore)
-			if err != nil {
-				println("读取所有分数出错", err.Error())
-			}
-			err = getThisScore17.QueryRow(postInfor.Profession, i).Scan(&thisScore)
-			bizhi = thisScore / allScore
-			if err != nil {
-				println("读取分数百分比出错", err.Error())
-			} else {
-				axis17 = append(axis17, bizhi)
-			}
+		//17级的Y轴百分比
+		var allNum17 float64 //分母-专业录取人数
+		err = getAllScore17.QueryRow(postInfor.Profession).Scan(&allNum17)
+		if err != nil {
+			println("获取17X轴出错", err.Error())
 		}
-		//18级的分数密度
-		for i := mindata; i < maxdata; i++ {
-			var bizhi, thisScore, allScore float32
-			err := getAllScore18.QueryRow(postInfor.Profession).Scan(&allScore)
-			err = getThisScore18.QueryRow(postInfor.Profession, i).Scan(&thisScore)
-			bizhi = thisScore / allScore
-			if err != nil {
-				println("读取分数百分比出错")
-			} else {
-				axis18 = append(axis18, bizhi)
-			}
+
+		thisScoreRows17, err := getThisScore17.Query(postInfor.Profession, mindata, maxdata)
+		if err != nil {
+			println("获取17X轴对应Y比例出错", err.Error())
 		}
-		//19级的分数密度
-		for i := mindata; i < maxdata; i++ {
-			var bizhi, thisScore, allScore float32
-			err := getAllScore19.QueryRow(postInfor.Profession).Scan(&allScore)
-			err = getThisScore19.QueryRow(postInfor.Profession, i).Scan(&thisScore)
-			bizhi = thisScore / allScore
-			if err != nil {
-				println("读取分数百分比出错")
+		ratio17 := make([]float64, 0, 100)
+
+		thisScoreRows17.Next()
+		for i := mindata - 1; i < maxdata; i++ {
+			var thisNum, result float64
+			var xnum int
+			thisScoreRows17.Scan(&xnum, &thisNum)
+			if xnum == i {
+				result = thisNum / allNum17
+				ratio17 = append(ratio17, result)
 			} else {
-				axis19 = append(axis19, bizhi)
+				ratio17 = append(ratio17, 0)
+				continue
 			}
+			thisScoreRows17.Next()
+		}
+
+		//18级的Y轴百分比
+		var allNum18 float64 //分母-专业录取人数
+		err = getAllScore18.QueryRow(postInfor.Profession).Scan(&allNum18)
+		if err != nil {
+			println("获取18X轴出错", err.Error())
+		}
+
+		thisScoreRows18, err := getThisScore18.Query(postInfor.Profession, mindata, maxdata)
+		if err != nil {
+			println("获取17X轴对应Y比例出错", err.Error())
+		}
+		ratio18 := make([]float64, 0, 100)
+
+		thisScoreRows18.Next()
+		for i := mindata - 1; i < maxdata; i++ {
+			var thisNum, result float64
+			var xnum int
+			thisScoreRows18.Scan(&xnum, &thisNum)
+			if xnum == i {
+				result = thisNum / allNum17
+				ratio18 = append(ratio18, result)
+			} else {
+				ratio18 = append(ratio18, 0)
+				continue
+			}
+			thisScoreRows18.Next()
+		}
+
+		//19级的Y轴百分比
+		var allNum19 float64 //分母-专业录取人数
+		err = getAllScore19.QueryRow(postInfor.Profession).Scan(&allNum19)
+		if err != nil {
+			println("获取17X轴出错", err.Error())
+		}
+
+		thisScoreRows19, err := getThisScore19.Query(postInfor.Profession, mindata, maxdata)
+		if err != nil {
+			println("获取17X轴对应Y比例出错", err.Error())
+		}
+		ratio19 := make([]float64, 0, 100)
+
+		thisScoreRows19.Next()
+		for i := mindata - 1; i < maxdata; i++ {
+			var thisNum, result float64
+			var xnum int
+			thisScoreRows19.Scan(&xnum, &thisNum)
+			if xnum == i {
+				result = thisNum / allNum17
+				ratio19 = append(ratio19, result)
+			} else {
+				ratio19 = append(ratio19, 0)
+				continue
+			}
+			thisScoreRows19.Next()
 		}
 
 		resMap := make(map[string]interface{})
@@ -162,9 +204,9 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 		resMap["minrank"] = minRank
 		resMap["sex"] = sexnum
 		resMap["axisx"] = axisX
-		resMap["axis17"] = axis17
-		resMap["axis18"] = axis18
-		resMap["axis19"] = axis19
+		resMap["axis17"] = ratio17
+		resMap["axis18"] = ratio18
+		resMap["axis19"] = ratio19
 
 		_, err = ctx.JSON(resMap)
 		if err != nil {

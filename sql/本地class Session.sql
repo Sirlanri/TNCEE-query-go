@@ -21,3 +21,6 @@ select count(*) from gaokao.18totaldata where 专业="机械设计制造及其�
 select 专业, max(成绩) from gaokao.17totaldata where 科类代码='理工' group by 专业 
 
 update gaokao.17lg set maxscore =? where name=?
+
+select count(*) from gaokao.17totaldata where 专业='软件工程' and 成绩 between 510 and 590
+select 成绩,count(*) from gaokao.17totaldata where 专业='软件工程' and 成绩 between 505 and 590 group by 成绩 order by 成绩
