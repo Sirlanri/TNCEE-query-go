@@ -275,52 +275,22 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 
 }
 
-//查询3届数据
-/*
-func rankQuery(ctx iris.Context, db *sql.DB) {
-	//测试
-	ctx.ContentType("application/javascript")
-	if db.Ping() != nil {
-		println("handler-数据库连接出错")
-	} else {
-		println("handler-连接数据库成功")
+//post-recommend数据
+type recommendStruct struct {
+	Score    int    `json:"score"`
+	Province string `json:"province"`
+	Rank     int    `json:"rank"`
+	Type     string `json:"type"`
+}
+
+//推介页面
+func recommend(ctx iris.Context, db *sql.DB) {
+	var receive recommendStruct
+	if err := ctx.ReadJSON(&receive); err != nil {
+		ctx.StatusCode(iris.StatusBadRequest)
+		ctx.WriteString("非法的post请求格式" + err.Error())
+		println("非法请求格式", err.Error())
+		return
 	}
-
-	//从数据库获取数据
-	responseData := make(map[string]interface{})
-	scoreData := make(map[string]interface{})
-	singleScore := make(map[string]interface{})
-
-	aveScore := make([]int, 0, 3)
-	minScore := make([]int, 0, 3)
-	minRank := make([]int, 0, 3)
-
-	//预编译sql: 传入lg/ws 专业名称 年份(2017)
-	getMinGrade, err := db.Prepare("select 录取最低分 from ? where 专业名称=? and 年份=?")
-	getMinRank, err := db.Prepare("select 最低位次 from ? where 专业名称=? and 年份=?")
-	getAverage, err := db.Prepare("select 平均分 from ? where 专业名称=? and 年份=?")
-
-	rows, err := db.Query("SELECT * FROM `gaokao`.`lg` LIMIT 1")
-	if err != nil {
-		println("handler-数据库测试出错", err)
-	}
-
-	sqls := make([]sqlobj, 0, 1000)
-
-	for rows.Next() {
-		var sqlnow sqlobj
-		err := rows.Scan(&sqlnow.Code, &sqlnow.Collegename, &sqlnow.Majorcode, &sqlnow.Majorname, &sqlnow.Minscore,
-			&sqlnow.Minrank, &sqlnow.Avescore, &sqlnow.Year)
-		if err != nil {
-			println("遍历出错", err.Error())
-		}
-		_, err = ctx.JSON(sqlnow)
-		if err != nil {
-			println("json出错", err.Error())
-		}
-		sqls = append(sqls, sqlnow)
-	}
-	fmt.Println(sqls)
 
 }
-*/

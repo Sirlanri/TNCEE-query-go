@@ -25,6 +25,9 @@ func main() {
 	app.Post("numschange", func(ctx iris.Context) {
 		numsChange(ctx, db)
 	})
+	app.Post("recommend", func(ctx iris.Context) {
+		recommend(ctx, db)
+	})
 
 	app.Listen(":8090")
 }
