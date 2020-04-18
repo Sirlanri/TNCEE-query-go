@@ -34,20 +34,27 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 	aveScore := make([]int, 0, 3)
 	minScore := make([]int, 0, 3)
 	minRank := make([]int, 0, 3)
-	var minscore, minrank, avescore int
+	maxScore := make([]int, 0, 3)
+	var minscore, minrank, avescore, maxscore int
+
+	//返回的密度数据
+	axisX := make([]int, 0, 100)
+	axis17 := make([]float32, 0, 100)
+	axis18 := make([]float32, 0, 100)
+	axis19 := make([]float32, 0, 100)
 
 	//执行sql查询
 	switch postInfor.Type {
 	case "理工":
 		//预编译表达式，但是不够完美，写预编译纯属为了好看
 
-		//获取三年数据
+		//获取三年平均最低折线图
 		getExplg, err := db.Prepare(`
-			select minscore,minrank,avescore from gaokao.lg17 where name=?
+			select minscore,minrank,avescore,maxscore from gaokao.lg17 where name=?
 			union
-			select minscore,minrank,avescore from gaokao.lg18 where name=?
+			select minscore,minrank,avescore,maxscore from gaokao.lg18 where name=?
 			union
-			select minscore,minrank,avescore from gaokao.lg19 where name=?
+			select minscore,minrank,avescore,maxscore from gaokao.lg19 where name=?
 		`)
 		if err != nil {
 			println("预编译表达式出错", err.Error())
@@ -56,22 +63,32 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 		if err != nil {
 			println("执行sql出错", err.Error())
 		}
+
 		//rows结果，分别是17 18 19
 		for rows.Next() {
-			err := rows.Scan(&minscore, &minrank, &avescore)
+			err := rows.Scan(&minscore, &minrank, &avescore, &maxscore)
 			if err != nil {
 				println("执行sql后写入数据出错", err.Error())
+			}
+			//此专业数据残缺（没有最高分），返回421
+			if maxscore == 0 {
+				ctx.StatusCode(421)
+				println("421-数据残缺")
+				return
 			}
 			aveScore = append(aveScore, avescore)
 			minScore = append(minScore, minscore)
 			minRank = append(minRank, minrank)
+			maxScore = append(maxScore, maxscore)
 		}
+
 		//没有这个专业数据 返回 404
 		if len(aveScore) == 0 {
 			ctx.StatusCode(404)
 			println("404-找不到专业数据")
 			return
 		}
+
 		//获取性别比例
 		getSex, err := db.Prepare("select sex from gaokao.lg18 where name=?")
 		var sexnum float32
@@ -90,10 +107,16 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 		if err != nil {
 			println("分数密度预编译表达式出错", err.Error())
 		}
+
 		//获取X轴数据，[三年最低分，三年最高]
-		maxdata := getMax(aveScore)
+		maxdata := getMax(maxScore)
 		mindata := getMin(minScore)
-		//循环三次，三年
+		//写入X轴数据
+		for i := mindata; i < maxdata; i++ {
+			axisX = append(axisX, i)
+		}
+
+		//17级的分数密度
 		for i := mindata; i < maxdata; i++ {
 			var bizhi, thisScore, allScore float32
 			err := getAllScore17.QueryRow(postInfor.Profession).Scan(&allScore)
@@ -105,9 +128,10 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 			if err != nil {
 				println("读取分数百分比出错", err.Error())
 			} else {
-				fmt.Println("17届比值", i, bizhi)
+				axis17 = append(axis17, bizhi)
 			}
 		}
+		//18级的分数密度
 		for i := mindata; i < maxdata; i++ {
 			var bizhi, thisScore, allScore float32
 			err := getAllScore18.QueryRow(postInfor.Profession).Scan(&allScore)
@@ -116,9 +140,10 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 			if err != nil {
 				println("读取分数百分比出错")
 			} else {
-				fmt.Println("18届", i, bizhi)
+				axis18 = append(axis18, bizhi)
 			}
 		}
+		//19级的分数密度
 		for i := mindata; i < maxdata; i++ {
 			var bizhi, thisScore, allScore float32
 			err := getAllScore19.QueryRow(postInfor.Profession).Scan(&allScore)
@@ -127,7 +152,7 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 			if err != nil {
 				println("读取分数百分比出错")
 			} else {
-				fmt.Println("19届", i, bizhi)
+				axis19 = append(axis19, bizhi)
 			}
 		}
 
@@ -136,6 +161,10 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 		resMap["minscore"] = minScore
 		resMap["minrank"] = minRank
 		resMap["sex"] = sexnum
+		resMap["axisx"] = axisX
+		resMap["axis17"] = axis17
+		resMap["axis18"] = axis18
+		resMap["axis19"] = axis19
 
 		_, err = ctx.JSON(resMap)
 		if err != nil {
