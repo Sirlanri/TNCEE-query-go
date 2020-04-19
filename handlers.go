@@ -285,6 +285,7 @@ type recommendStruct struct {
 
 //推介页面
 func recommend(ctx iris.Context, db *sql.DB) {
+	ctx.ContentType("application/javascript")
 	var receive recommendStruct
 	if err := ctx.ReadJSON(&receive); err != nil {
 		ctx.StatusCode(iris.StatusBadRequest)
@@ -293,7 +294,7 @@ func recommend(ctx iris.Context, db *sql.DB) {
 		return
 	}
 	//以平均位次为查询方式
-	minRank := receive.Rank - 5000
+	minRank := receive.Rank - 10000
 	maxRank := receive.Rank + 5000
 	getNames, err := db.Prepare(`
 		select name,maxscore,maxrank,avescore,averank,minscore,minrank 
@@ -319,23 +320,22 @@ func recommend(ctx iris.Context, db *sql.DB) {
 			//如果成绩有缺失，就丢掉这个专业
 			continue
 		}
+		tag = "冲刺"
 		if maxrank > receive.Rank {
-			tag = "bao"
+			tag = "保底"
 		}
 		if averank > receive.Rank {
-			tag = "wen"
+			tag = "稳健"
 		}
-		if minrank < receive.Rank {
-			tag = "chong"
-		}
-		major["name"] = name
+
+		major["profession"] = name
 		major["maxscore"] = maxscore
 		major["avescore"] = avescore
 		major["minscore"] = minscore
 		major["maxrank"] = maxrank
 		major["averank"] = averank
 		major["minrank"] = minrank
-		major["tag"] = tag
+		major["idea"] = tag
 		resMajors = append(resMajors, major)
 	}
 	ctx.JSON(resMajors)
