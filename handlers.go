@@ -295,9 +295,48 @@ func recommend(ctx iris.Context, db *sql.DB) {
 	//以平均位次为查询方式
 	minRank := receive.Rank - 5000
 	maxRank := receive.Rank + 5000
-	getNames, err := db.Prepare("select name, averank, minrank from gaokao.lg19 where averank between ? and ?")
+	getNames, err := db.Prepare(`
+		select name,maxscore,maxrank,avescore,averank,minscore,minrank 
+		from gaokao.lg19 
+		where averank between ? and ? limit 30`)
 	if err != nil {
 		println("预编译表达式出错", err.Error())
 	}
 
+	majorRows, err := getNames.Query(minRank, maxRank)
+	if err != nil {
+		println("sql查询出错", err.Error())
+	}
+
+	resMajors := make([]interface{}, 0, 30)
+	for majorRows.Next() {
+		major := make(map[string]interface{})
+		var name, tag string
+		var maxscore, maxrank, avescore, averank, minscore, minrank int
+		majorRows.Scan(&name, &maxscore, &maxrank, &avescore, &averank, &minscore, &minrank)
+		fmt.Println(name)
+		if maxscore == 0 {
+			//如果成绩有缺失，就丢掉这个专业
+			continue
+		}
+		if maxrank > receive.Rank {
+			tag = "bao"
+		}
+		if averank > receive.Rank {
+			tag = "wen"
+		}
+		if minrank < receive.Rank {
+			tag = "chong"
+		}
+		major["name"] = name
+		major["maxscore"] = maxscore
+		major["avescore"] = avescore
+		major["minscore"] = minscore
+		major["maxrank"] = maxrank
+		major["averank"] = averank
+		major["minrank"] = minrank
+		major["tag"] = tag
+		resMajors = append(resMajors, major)
+	}
+	ctx.JSON(resMajors)
 }

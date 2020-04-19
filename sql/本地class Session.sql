@@ -32,3 +32,7 @@ select 理工科类累计人数 from gaokao.rank19 where 成绩分数段=520
 update gaokao.lg17 set maxrank=? where name=?
 
 select 理工科类累计人数 from gaokao.rank19 where 成绩分数段=527
+
+select name,maxscore,maxrank,avescore,averank,minscore,minrank 
+    from gaokao.lg19 
+    where averank between 80000 and 90000 limit 20
