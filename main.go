@@ -8,10 +8,6 @@ import (
 	"github.com/kataras/iris/v12"
 )
 
-func main2() {
-	toMaxRank()
-}
-
 func main() {
 	//初始化数据库连接
 	db, err := sql.Open("mysql", "root:123456@/gaokao")

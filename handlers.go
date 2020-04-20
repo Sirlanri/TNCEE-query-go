@@ -315,7 +315,6 @@ func recommend(ctx iris.Context, db *sql.DB) {
 		var name, tag string
 		var maxscore, maxrank, avescore, averank, minscore, minrank int
 		majorRows.Scan(&name, &maxscore, &maxrank, &avescore, &averank, &minscore, &minrank)
-		fmt.Println(name)
 		if maxscore == 0 {
 			//如果成绩有缺失，就丢掉这个专业
 			continue
