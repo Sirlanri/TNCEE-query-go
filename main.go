@@ -10,9 +10,9 @@ import (
 
 func main() {
 	//初始化数据库连接
-	db, err := sql.Open("mysql", "root:123456@/gaokao")
+	db, err := sql.Open("mysql", "gaokao:123456@/gaokao")
 	if db.Ping() != nil {
-		println("初始化-数据库连接出错", err)
+		println("初始化-数据库连接出错", err.Error())
 	}
 
 	//初始化iris框架
