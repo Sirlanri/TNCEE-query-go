@@ -47,11 +47,11 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 
 		//获取三年平均最低折线图
 		getExplg, err := db.Prepare(`
-			select minscore,minrank,avescore,maxscore from gaokao.lg17 where name=?
+			select minscore,minrank,avescore,maxscore from lg17 where name=?
 			union
-			select minscore,minrank,avescore,maxscore from gaokao.lg18 where name=?
+			select minscore,minrank,avescore,maxscore from lg18 where name=?
 			union
-			select minscore,minrank,avescore,maxscore from gaokao.lg19 where name=?
+			select minscore,minrank,avescore,maxscore from lg19 where name=?
 		`)
 		if err != nil {
 			println("预编译表达式出错", err.Error())
@@ -88,7 +88,7 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 		}
 
 		//获取性别比例
-		getSex, err := db.Prepare("select sex from gaokao.lg18 where name=?")
+		getSex, err := db.Prepare("select sex from lg18 where name=?")
 		var sexnum float32
 		err = getSex.QueryRow(postInfor.Profession).Scan(&sexnum)
 		if err != nil {
@@ -96,12 +96,12 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 		}
 
 		//获取分数密度
-		getThisScore17, err := db.Prepare("select 成绩,count(*) from gaokao.17totaldata where 专业=? and 成绩 between ? and ? group by 成绩 order by 成绩")
-		getAllScore17, err := db.Prepare("select count(*) from gaokao.17totaldata where 专业=?")
-		getThisScore18, err := db.Prepare("select 成绩,count(*) from gaokao.18totaldata where 专业=? and 成绩 between ? and ? group by 成绩 order by 成绩")
-		getAllScore18, err := db.Prepare("select count(*) from gaokao.18totaldata where 专业=?")
-		getThisScore19, err := db.Prepare("select 成绩,count(*) from gaokao.19totaldata where 专业=? and 成绩 between ? and ? group by 成绩 order by 成绩")
-		getAllScore19, err := db.Prepare("select count(*) from gaokao.19totaldata where 专业=?")
+		getThisScore17, err := db.Prepare("select 成绩,count(*) from 17totaldata where 专业=? and 成绩 between ? and ? group by 成绩 order by 成绩")
+		getAllScore17, err := db.Prepare("select count(*) from 17totaldata where 专业=?")
+		getThisScore18, err := db.Prepare("select 成绩,count(*) from 18totaldata where 专业=? and 成绩 between ? and ? group by 成绩 order by 成绩")
+		getAllScore18, err := db.Prepare("select count(*) from 18totaldata where 专业=?")
+		getThisScore19, err := db.Prepare("select 成绩,count(*) from 19totaldata where 专业=? and 成绩 between ? and ? group by 成绩 order by 成绩")
+		getAllScore19, err := db.Prepare("select count(*) from 19totaldata where 专业=?")
 		if err != nil {
 			println("分数密度预编译表达式出错", err.Error())
 		}
@@ -221,11 +221,11 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 
 		//获取三年数据
 		getExplg, err := db.Prepare(`
-			select minscore,minrank,avescore from gaokao.ws17 where name=?
+			select minscore,minrank,avescore from ws17 where name=?
 			union
-			select minscore,minrank,avescore from gaokao.ws18 where name=?
+			select minscore,minrank,avescore from ws18 where name=?
 			union
-			select minscore,minrank,avescore from gaokao.ws19 where name=?
+			select minscore,minrank,avescore from ws19 where name=?
 		`)
 		if err != nil {
 			println("预编译表达式出错", err.Error())
@@ -251,7 +251,7 @@ func numsChange(ctx iris.Context, db *sql.DB) {
 			return
 		}
 		//获取性别比例
-		getSex, err := db.Prepare("select sex from gaokao.ws18 where name=?")
+		getSex, err := db.Prepare("select sex from ws18 where name=?")
 		var sexnum float32
 		err = getSex.QueryRow(postInfor.Profession).Scan(&sexnum)
 		if err != nil {
@@ -298,7 +298,7 @@ func recommend(ctx iris.Context, db *sql.DB) {
 	maxRank := receive.Rank + 5000
 	getNames, err := db.Prepare(`
 		select name,maxscore,maxrank,avescore,averank,minscore,minrank 
-		from gaokao.lg19 
+		from lg19 
 		where averank between ? and ? limit 30`)
 	if err != nil {
 		println("预编译表达式出错", err.Error())

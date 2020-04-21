@@ -10,9 +10,12 @@ import (
 
 func main() {
 	//初始化数据库连接
-	db, err := sql.Open("mysql", "gaokao:123456@/gaokao")
+	db, err := sql.Open("mysql", "gaokao:123456@/collegescore")
+	if err!=nil{
+		println("数据库连接失败",err.Error())
+	}
 	if db.Ping() != nil {
-		println("初始化-数据库连接出错", err.Error())
+		println("初始化-数据库连接出错", db.Ping().Error())
 	}
 
 	//初始化iris框架
@@ -33,5 +36,5 @@ func main() {
 			recommend(ctx, db)
 		})
 	}
-	app.Listen(":8090")
+	app.Listen(":9002")
 }
