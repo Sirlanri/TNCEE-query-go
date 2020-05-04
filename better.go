@@ -8,7 +8,7 @@ import (
 func getscores() {
 	db, err := sql.Open("mysql", "root:123456@/gaokao")
 	if db.Ping() != nil {
-		println("初始化-数据库连接出错", err)
+		println("初始化-数据库连接出错", err.Error())
 	}
 
 	getrank, err := db.Prepare("select 文史科类累计人数 from rank17 where 成绩分数段=?")
